@@ -3,7 +3,6 @@
 <head>
   <meta charset="utf-8">
   <title>Live Google Sheet View</title>
-  <meta http-equiv="refresh" content="3"> <!-- Refresh page every 3 seconds -->
   <style>
     html, body {
       margin: 0;
@@ -18,7 +17,20 @@
   </style>
 </head>
 <body>
-  <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQdo98GuJOmx0DG0zJCGdEexx8aj_6bznOcCk9xR5oc8EQMdwKlhTB4uAu8hinSYMYj-8VRnW3VApoe/pubhtml?gid=1414154343&single=true"></iframe>
+  <iframe id="live-sheet" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQdo98GuJOmx0DG0zJCGdEexx8aj_6bznOcCk9xR5oc8EQMdwKlhTB4uAu8hinSYMYj-8VRnW3VApoe/pubhtml?gid=1414154343&single=true"></iframe>
+
+  <script>
+    // Refresh iframe every 15 seconds (adjust as needed)
+    const refreshInterval = 2000; // 15 seconds
+    const iframe = document.getElementById('live-sheet');
+
+    setInterval(() => {
+      // Force reload iframe by resetting its src with a cache buster
+      const baseUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQdo98GuJOmx0DG0zJCGdEexx8aj_6bznOcCk9xR5oc8EQMdwKlhTB4uAu8hinSYMYj-8VRnW3VApoe/pubhtml?gid=1414154343&single=true";
+      iframe.src = baseUrl + "&t=" + new Date().getTime(); // add timestamp to prevent caching
+    }, refreshInterval);
+  </script>
 </body>
 </html>
+
 
