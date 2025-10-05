@@ -1,36 +1,106 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <title>Live Google Sheet View</title>
+  <meta charset="utf-8" />
+  <title>Real-Time Google Sheet Viewer</title>
   <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
     }
-    iframe {
-      border: none;
+    table {
+      border-collapse: collapse;
       width: 100%;
-      height: 100%;
+      max-width: 100%;
+      table-layout: fixed;
+      word-wrap: break-word;
+    }
+    th, td {
+      padding: 8px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    th {
+      background-color: #f4f4f4;
+    }
+    tbody tr:hover {
+      background-color: #f1f1f1;
     }
   </style>
 </head>
 <body>
-  <iframe id="live-sheet" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQdo98GuJOmx0DG0zJCGdEexx8aj_6bznOcCk9xR5oc8EQMdwKlhTB4uAu8hinSYMYj-8VRnW3VApoe/pubhtml?gid=1414154343&single=true"></iframe>
+  <h1>Live Google Sheet View (Display)</h1>
+  <table id="sheet-table">
+    <thead></thead>
+    <tbody></tbody>
+  </table>
 
   <script>
-    // Refresh iframe every 15 seconds (adjust as needed)
-    const refreshInterval = 2000; // 15 seconds
-    const iframe = document.getElementById('live-sheet');
+    const SHEET_ID = "1B7yr8DF6TcyGmSG5wCCumhUOIs8NLssym0A4XHGpYX8";
+    const SHEET_NAME = "Display";
+    const RANGE = "A1:L32";
+    const API_KEY = "AIzaSyA1Q4eZkfuzS6rd206nHwBbdGsF5VudbYM";
 
-    setInterval(() => {
-      // Force reload iframe by resetting its src with a cache buster
-      const baseUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQdo98GuJOmx0DG0zJCGdEexx8aj_6bznOcCk9xR5oc8EQMdwKlhTB4uAu8hinSYMYj-8VRnW3VApoe/pubhtml?gid=1414154343&single=true";
-      iframe.src = baseUrl + "&t=" + new Date().getTime(); // add timestamp to prevent caching
-    }, refreshInterval);
+    async function fetchSheetData() {
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(SHEET_NAME + "!" + RANGE)}?key=${API_KEY}`;
+      try {
+        const resp = await fetch(url);
+        if (!resp.ok) {
+          throw new Error(`HTTP error! Status: ${resp.status}`);
+        }
+        const data = await resp.json();
+        return data.values || [];
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        return [];
+      }
+    }
+
+    function renderTable(values) {
+      const thead = document.querySelector("#sheet-table thead");
+      const tbody = document.querySelector("#sheet-table tbody");
+
+      thead.innerHTML = "";
+      tbody.innerHTML = "";
+
+      if (values.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='12'>No data found or error loading data.</td></tr>";
+        return;
+      }
+
+      // header row
+      const headerRow = values[0];
+      const trHead = document.createElement("tr");
+      headerRow.forEach(header => {
+        const th = document.createElement("th");
+        th.textContent = header;
+        trHead.appendChild(th);
+      });
+      thead.appendChild(trHead);
+
+      // data rows
+      for (let i = 1; i < values.length; i++) {
+        const row = values[i];
+        const tr = document.createElement("tr");
+        for (let j = 0; j < headerRow.length; j++) {
+          const td = document.createElement("td");
+          td.textContent = row[j] || "";
+          tr.appendChild(td);
+        }
+        tbody.appendChild(tr);
+      }
+    }
+
+    async function refresh() {
+      const values = await fetchSheetData();
+      renderTable(values);
+    }
+
+    refresh();
+    setInterval(refresh, 5000); // refresh every 5 seconds
   </script>
 </body>
 </html>
+
 
 
